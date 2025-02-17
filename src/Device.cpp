@@ -6,7 +6,7 @@ std::vector<Device> Device::allDevices(Platform& platform) {
     std::vector<Device> all_devices;
 
     //get the number of devices
-    if((result = clGetDeviceIDs(platform.getId(), CL_DEVICE_TYPE_ALL, 0, nullptr, &num_devices)) != CL_SUCCESS)
+    if((result = clGetDeviceIDs(platform.getId(), CL_DEVICE_TYPE_ALL, 0, nullptr, &num_devices)) != CL_SUCCESS) 
         return all_devices;
 
     //allocate memory for devices

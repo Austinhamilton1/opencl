@@ -1,6 +1,8 @@
 #include <vector>
 #include <iostream>
+#include <string>
 
+#include "Logger.h"
 #include "Platform.h"
 #include "Device.h"
 
@@ -18,6 +20,11 @@ int main() {
 
     std::cout << "Platform name: " << default_platform.getInfo<CL_PLATFORM_NAME, char>() << std::endl;
 
+    if(!default_platform.checkResult(CL_SUCCESS)) {
+        std::cout << default_platform.getError();
+        return -1;
+    }
+
     std::vector<Device> all_devices = Device::allDevices(default_platform);
 
     if(all_devices.size() == 0) {
@@ -25,11 +32,14 @@ int main() {
         return 0;
     }
 
-    for(unsigned int i = 0; i < all_devices.size(); i++) {
-        std::cout << "Device " << i + 1 << ":" << std::endl;
-        std::cout << "\tDevice Name: " << all_devices[i].getInfo<CL_DEVICE_NAME, char>() << std::endl;
-        std::cout << "\tDevice Vendor: " << all_devices[i].getInfo<CL_DEVICE_VENDOR, char>() << std::endl;
-        std::cout << "\tDevice Version: " << all_devices[i].getInfo<CL_DEVICE_VERSION, char>() << std::endl;
+    Device default_device = all_devices[0];
+    std::cout << "\tDevice Name: " << default_device.getInfo<CL_DEVICE_NAME, char>() << std::endl;
+    std::cout << "\tDevice Vendor: " << default_device.getInfo<CL_DEVICE_VENDOR, char>() << std::endl;
+    std::cout << "\tDevice Version: " << default_device.getInfo<CL_DEVICE_VERSION, char>() << std::endl;
+
+    if(!default_device.checkResult(CL_SUCCESS)) {
+        std::cout << default_device.getError();
+        return -1;
     }
 
     return 0;
