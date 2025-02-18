@@ -1,12 +1,10 @@
 #pragma once
-
 #include <vector>
 
 #include <CL/cl.h>
 
 #include "Logger.h"
 #include "Platform.h"
-#include "Context.h"
 
 class Device : public Logger {
 private:
@@ -16,11 +14,9 @@ public:
     Device(cl_device_id id) : id(id) {};
     ~Device() {};
 
-    inline cl_device_id getId() { return id; }
+    inline cl_device_id& getId() { return id; }
 
     static std::vector<Device> allDevices(Platform& platform);
-
-    Context getContext();
 
     template <cl_device_info S, typename T> std::shared_ptr<T[]> getInfo() {
         std::string message;
@@ -56,5 +52,9 @@ public:
         logInfo("Device::getInfo called");
 
         return value;
+    }
+
+    bool operator==(Device& other) {
+        return this->id == other.getId();
     }
 };

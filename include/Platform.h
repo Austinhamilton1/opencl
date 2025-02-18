@@ -14,7 +14,7 @@ public:
     Platform(cl_platform_id id) : id(id) {};
     ~Platform() {};
 
-    inline cl_platform_id getId() { return id; };
+    inline cl_platform_id& getId() { return id; };
 
     static std::vector<Platform> allPlatforms();
     

@@ -22,20 +22,3 @@ std::vector<Device> Device::allDevices(Platform& platform) {
 
     return all_devices;
 }
-
-Context Device::getContext() {
-    //create the context
-    logInfo("Calling clCreateContext");
-    cl_context contextId = clCreateContext(nullptr, 1, &id, nullptr, nullptr, &result);
-    logInfo("clCreateContext called");
-
-    //check for errors
-    if(result != CL_SUCCESS) {
-        logError("clCreateContext()");
-        return nullptr;
-    }
-
-    //return a context object
-    Context context(contextId);
-    return context;
-}
