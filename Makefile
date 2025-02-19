@@ -7,18 +7,18 @@ BIN=bin
 
 OBJS=$(patsubst $(SRC)/%.cpp, $(OBJ)/%.o, $(wildcard $(SRC)/*.cpp))
 
-CXXFLAGS=-I$(INC) -D CL_TARGET_OPENCL_VERSION=300
+CXXFLAGS=-I$(INC) -D CL_TARGET_OPENCL_VERSION=300 -g
 LDFLAGS=-lOpenCL
 
 .PHONY: all clean
 
-all: clean device_query vadd
+all: $(BIN)/device_query $(BIN)/vadd
 
-$(BIN)/device_query: device_query.o $(OBJS) | $(BIN)
-	$(CXX) $(CXXFLAGS) -o $@ device_query.o $(OBJS) $(LDFLAGS)
+$(BIN)/device_query: $(OBJ)/device_query.o $(OBJS) | $(BIN)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ)/device_query.o $(OBJS) $(LDFLAGS)
 
-$(BIN)/vadd: vadd.o $(OBJS) | $(BIN)
-	$(CXX) $(CXXFLAGS) -o $@ vadd.o $(OBJS) $(LDFLAGS)
+$(BIN)/vadd: $(OBJ)/vadd.o $(OBJS) | $(BIN)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ)/vadd.o $(OBJS) $(LDFLAGS)
 
 $(OBJ)/device_query.o: device_query.cpp | $(OBJ)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<

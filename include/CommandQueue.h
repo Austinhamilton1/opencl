@@ -1,18 +1,22 @@
 #pragma once
 #include <memory>
+#include <vector>
 
 #include <CL/cl.h>
 
 #include "Logger.h"
-#include "Buffer.h"
 #include "Kernel.h"
+
+class Buffer;
+class Context;
+class Device;
 
 class CommandQueue : public Logger {
 private:
     cl_command_queue queue;
 
 public:
-    CommandQueue(cl_command_queue queue) : queue(queue) {};
+    CommandQueue(Context& context, Device& device);
     ~CommandQueue();
 
     inline cl_command_queue& getId() { return queue; };
@@ -21,7 +25,7 @@ public:
     void readBuffer(Buffer& buffer, bool blocking, size_t offset, void *ptr);
     void copyBuffer(Buffer& src, Buffer& dest, size_t src_offset, size_t dest_offset);
     
-    template <unsigned int x, unsigned int y, unsigned int z> void runKernel(Kernel& kernel) {
+    template <unsigned int x, unsigned int y, unsigned int z> void runKernel(std::shared_ptr<Kernel> kernel){
         std::vector<size_t> global_work_size;
 
         logInfo("Calling CommandQueue::runKernel");
@@ -32,7 +36,7 @@ public:
         global_work_size.push_back(z);
 
         logInfo("Calling clEnqueueNDRangeKernel");
-        result = clEnqueueNDRangeKernel(queue, kernel.getId(), 3, nullptr, global_work_size.data(), nullptr, 0, nullptr, nullptr);
+        result = clEnqueueNDRangeKernel(queue, kernel->getId(), 3, nullptr, global_work_size.data(), nullptr, 0, nullptr, nullptr);
         logInfo("clEnqueueNDRangeKernel called");
 
         if(result != CL_SUCCESS) {
@@ -41,9 +45,9 @@ public:
         }
 
         logInfo("CommandQueue::runKernel");
-    }
+    };
 
-    template <cl_context_info S, typename T> std::shared_ptr<T[]> getInfo() {
+    template <cl_command_queue_info S, typename T> std::shared_ptr<T[]> getInfo() {
         std::string message;
         size_t param_size; //size of the parameter
         
@@ -77,5 +81,5 @@ public:
         logInfo("CommandQueue::getInfo called");
 
         return value;
-    }
+    };
 };

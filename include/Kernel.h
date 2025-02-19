@@ -4,7 +4,8 @@
 #include <CL/cl.h>
 
 #include "Logger.h"
-#include "Buffer.h"
+
+class Buffer;
 
 class Kernel : public Logger {
 private:
@@ -18,7 +19,7 @@ public:
 
     void setArg(unsigned int index, Buffer& buffer);
 
-    template <cl_context_info S, typename T> std::shared_ptr<T[]> getInfo() {
+    template <cl_kernel_info S, typename T> std::shared_ptr<T[]> getInfo() {
         std::string message;
         size_t param_size; //size of the parameter
         

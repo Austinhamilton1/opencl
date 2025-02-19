@@ -1,4 +1,29 @@
 #include "CommandQueue.h"
+#include "Context.h"
+#include "Device.h"
+#include "Buffer.h"
+
+CommandQueue::CommandQueue(Context& context, Device& device) {
+    logInfo("Calling CommandQueue::CommandQueue");
+
+    logInfo("Calling clCreateCommandQueueWithProperties");
+    queue = clCreateCommandQueueWithProperties(context.getId(), device.getId(), nullptr, &result);
+    logInfo("clCreateCommandQueueWithProperties called");
+    
+    //check result of queue creation
+    if(result != CL_SUCCESS) {
+        int icontext = CL_INVALID_CONTEXT;
+        int idevice = CL_INVALID_DEVICE;
+        int ivalue = CL_INVALID_VALUE;
+        int iproperties = CL_INVALID_QUEUE_PROPERTIES;
+        int oresources = CL_OUT_OF_RESOURCES;
+        int omemory = CL_OUT_OF_HOST_MEMORY;
+        logError("clCreateCommandQueueWithProperties()");
+        return;
+    }
+
+    logInfo("CommandQueue::CommandQueue called");
+}
 
 CommandQueue::~CommandQueue() {
     logInfo("Calling clReleaseCommandQueue");

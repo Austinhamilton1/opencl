@@ -1,8 +1,9 @@
 #pragma once
 #include <CL/cl.h>
 
-#include "Context.h"
 #include "Logger.h"
+
+class Context;
 
 class Buffer : public Logger {
 private:

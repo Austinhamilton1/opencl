@@ -2,19 +2,19 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
+#include <string>
 
 #include <CL/cl.h>
 
 #include "Logger.h"
 #include "Device.h"
-#include "CommandQueue.h"
 #include "Program.h"
 
 class Context : public Logger {
 private:
     cl_context context;
     std::vector<Device> devices;
-    std::vector<CommandQueue> queues;
+    std::unordered_map<std::string, Program> programs;
 
 public:
     Context(std::vector<Device> devices);
@@ -22,9 +22,6 @@ public:
 
     inline cl_context& getId() { return context; };
     inline std::vector<Device>& getDevices() { return devices; };
-
-    CommandQueue& createQueue(Device& device);
-    Program& createProgram(std::vector<std::string> source_files);
 
     template <cl_context_info S, typename T> std::shared_ptr<T[]> getInfo() {
         std::string message;

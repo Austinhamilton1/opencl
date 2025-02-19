@@ -1,4 +1,5 @@
 #include "Kernel.h"
+#include "Buffer.h"
 
 Kernel::~Kernel() {
     clReleaseKernel(kernel);

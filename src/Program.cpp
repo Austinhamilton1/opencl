@@ -1,6 +1,43 @@
 #include <fstream>
 
 #include "Program.h"
+#include "Context.h"
+
+Program::Program(Context& context, std::string source_file) {
+    logInfo("Calling Program::Program");
+
+    logInfo("Reading source file");
+    std::ifstream input_file(source_file);
+    if(input_file.is_open()) {
+        std::string line;
+        //read the file line by line
+        while(std::getline(input_file, line))
+            source += line;
+    }
+    else {
+        //log an error
+        logError("Couldn't open file " + source_file);
+        result = -1;
+        return;
+    }
+
+    logInfo("Source file read");
+
+    const char *data = source.c_str();
+
+    //create the program
+    logInfo("Calling clCreateProgramWithSource");
+    program = clCreateProgramWithSource(context.getId(), 1, &data, nullptr, &result);
+    logInfo("clCreateProgramWithSource called");
+
+    //check for errors
+    if(result != CL_SUCCESS) {
+        logError("clCreateProgramWithSource()");
+        return;
+    }
+
+    logInfo("Program::Program called");
+}
 
 Program::~Program() {
     clReleaseProgram(program);
@@ -34,17 +71,16 @@ void Program::addKernel(std::string name) {
 
     if(result != CL_SUCCESS) {
         logError("clCreateKernel()");
-        Kernel empty_kernel({});
-        kernels[name] = empty_kernel;
+        return;
     }
 
     logInfo("Program::addKernel called");
 
-    Kernel kernel(kernel_id);
+    std::shared_ptr<Kernel> kernel = std::make_shared<Kernel>(kernel_id);
     kernels[name] = kernel;
 }
 
-Kernel& Program::getKernel(std::string name) {
+std::shared_ptr<Kernel> Program::getKernel(std::string name) {
     logInfo("Calling Program::getKernel");
     logInfo("Program::getKernel called");
     return kernels[name];
