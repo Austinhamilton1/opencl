@@ -52,14 +52,6 @@ void CommandQueue::readBuffer(Buffer& buffer, bool blocking, size_t offset, void
 
     //check for errors
     if(result != CL_SUCCESS) {
-        int a1 = CL_INVALID_COMMAND_QUEUE;
-        int a2 = CL_INVALID_CONTEXT;
-        int a3 = CL_INVALID_MEM_OBJECT;
-        int a4 = CL_INVALID_VALUE;
-        int a5 = CL_INVALID_EVENT_WAIT_LIST;
-        int a6 = CL_INVALID_OPERATION;
-        int a7 = CL_OUT_OF_RESOURCES;
-        int a8 = CL_OUT_OF_HOST_MEMORY;
         logError("clEnqueueReadBuffer()");
         return;
     }
