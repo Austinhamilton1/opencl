@@ -28,4 +28,5 @@ public:
     void logInfo(std::string message);
     void logDebug(std::string message);
     void logError(std::string message);
+    std::string getResultString();
 };
