@@ -7,9 +7,10 @@ Kernel::~Kernel() {
 
 void Kernel::setArg(unsigned int index, Buffer& buffer) {
     logInfo("Calling Kernel::setArg");
+    size_t arg_size = sizeof(cl_mem);
 
     logInfo("Calling clSetKernelArg");
-    result = clSetKernelArg(kernel, index, sizeof(cl_mem), &buffer.getId());
+    result = clSetKernelArg(kernel, index, arg_size, &buffer.getId());
     logInfo("clSetKernelArg called");
 
     if(result != CL_SUCCESS) {

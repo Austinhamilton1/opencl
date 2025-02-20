@@ -23,7 +23,6 @@ public:
     Program(Context& context, std::string source_file);
     ~Program();
 
-    inline void setDevices(std::vector<Device>& devices) { this->devices = devices; };
     inline std::string getSource() { return source; };
 
     void build();

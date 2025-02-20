@@ -19,6 +19,22 @@ public:
 
     void setArg(unsigned int index, Buffer& buffer);
 
+    template <typename T> void setArg(unsigned int index, const void *value) {
+        logInfo("Calling Kernel::setArg");
+        size_t arg_size = sizeof(T);
+
+        logInfo("Calling clSetKernelArg");
+        result = clSetKernelArg(kernel, index, arg_size, value);
+        logInfo("clSetKernelArg called");
+
+        if(result != CL_SUCCESS) {
+            logError("clSetKernelArg()");
+            return;
+        }
+
+        logInfo("Kernel::setArg called");
+    };
+
     template <cl_kernel_info S, typename T> std::shared_ptr<T[]> getInfo() {
         std::string message;
         size_t param_size; //size of the parameter
@@ -53,5 +69,5 @@ public:
         logInfo("Kernel::getInfo called");
 
         return value;
-    }
+    };
 };

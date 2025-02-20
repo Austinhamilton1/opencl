@@ -23,6 +23,7 @@ Program::Program(Context& context, std::string source_file) {
 
     logInfo("Source file read");
 
+    devices = context.getDevices();
     const char *data = source.c_str();
 
     //create the program

@@ -12,12 +12,6 @@ CommandQueue::CommandQueue(Context& context, Device& device) {
     
     //check result of queue creation
     if(result != CL_SUCCESS) {
-        int icontext = CL_INVALID_CONTEXT;
-        int idevice = CL_INVALID_DEVICE;
-        int ivalue = CL_INVALID_VALUE;
-        int iproperties = CL_INVALID_QUEUE_PROPERTIES;
-        int oresources = CL_OUT_OF_RESOURCES;
-        int omemory = CL_OUT_OF_HOST_MEMORY;
         logError("clCreateCommandQueueWithProperties()");
         return;
     }

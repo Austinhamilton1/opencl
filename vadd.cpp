@@ -90,7 +90,6 @@ int main() {
 
     //build the program
     std::cout << "Building program" << std::endl;
-    main.setDevices(context.getDevices());
     main.build();
     if(!main.checkResult(CL_SUCCESS)) {
         std::cout << "Could not build program" << std::endl;

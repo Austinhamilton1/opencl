@@ -12,7 +12,7 @@ LDFLAGS=-lOpenCL
 
 .PHONY: all clean
 
-all: $(BIN)/device_query $(BIN)/vadd
+all: $(BIN)/device_query $(BIN)/vadd $(BIN)/dot
 
 $(BIN)/device_query: $(OBJ)/device_query.o $(OBJS) | $(BIN)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ)/device_query.o $(OBJS) $(LDFLAGS)
@@ -20,10 +20,16 @@ $(BIN)/device_query: $(OBJ)/device_query.o $(OBJS) | $(BIN)
 $(BIN)/vadd: $(OBJ)/vadd.o $(OBJS) | $(BIN)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ)/vadd.o $(OBJS) $(LDFLAGS)
 
+$(BIN)/dot: $(OBJ)/dot.o $(OBJS) | $(BIN)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ)/dot.o $(OBJS) $(LDFLAGS)
+
 $(OBJ)/device_query.o: device_query.cpp | $(OBJ)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(OBJ)/vadd.o: vadd.cpp | $(OBJ)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+$(OBJ)/dot.o: dot.cpp | $(OBJ)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(OBJ)/Buffer.o : $(SRC)/Buffer.cpp | $(OBJ)
