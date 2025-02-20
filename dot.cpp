@@ -169,7 +169,7 @@ int main() {
     }
 
     //run the kernel
-    queue.runKernel<THREADS, 1, 1>(dot);
+    queue.runKernel<THREADS, 1>(dot, 1);
     if(!queue.checkResult(CL_SUCCESS)) {
         std::cout << "Could not run dot kernel" << std::endl;
         return -1;

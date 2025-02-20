@@ -137,7 +137,7 @@ int main() {
 
     //run the kernel and time it
     std::cout << "Running kernel" << std::endl;
-    queue.runKernel<4096, 1, 1>(vadd);
+    queue.runKernel<4096, 1>(vadd, 1);
     if(!queue.checkResult(CL_SUCCESS)) {
         std::cout << "Could not run kernel" << std::endl;
         return -1;

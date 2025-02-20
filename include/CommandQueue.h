@@ -25,18 +25,19 @@ public:
     void readBuffer(Buffer& buffer, bool blocking, size_t offset, void *ptr);
     void copyBuffer(Buffer& src, Buffer& dest, size_t src_offset, size_t dest_offset);
     
-    template <unsigned int x, unsigned int y, unsigned int z> void runKernel(std::shared_ptr<Kernel> kernel){
-        std::vector<size_t> global_work_size;
-
+    template <size_t global, size_t local> void runKernel(std::shared_ptr<Kernel> kernel, unsigned int dim) {
         logInfo("Calling CommandQueue::runKernel");
 
-        //set the global work size array
-        global_work_size.push_back(x);
-        global_work_size.push_back(y);
-        global_work_size.push_back(z);
+        std::vector<size_t> global_sizes;
+        std::vector<size_t> local_sizes;
+
+        for(unsigned int i = 0; i < dim; i++) {
+            global_sizes.push_back(global);
+            local_sizes.push_back(local);
+        }
 
         logInfo("Calling clEnqueueNDRangeKernel");
-        result = clEnqueueNDRangeKernel(queue, kernel->getId(), 3, nullptr, global_work_size.data(), nullptr, 0, nullptr, nullptr);
+        result = clEnqueueNDRangeKernel(queue, kernel->getId(), dim, nullptr, global_sizes.data(), local_sizes.data(), 0, nullptr, nullptr);
         logInfo("clEnqueueNDRangeKernel called");
 
         if(result != CL_SUCCESS) {
