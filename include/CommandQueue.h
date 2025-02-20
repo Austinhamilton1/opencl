@@ -25,19 +25,65 @@ public:
     void readBuffer(Buffer& buffer, bool blocking, size_t offset, void *ptr);
     void copyBuffer(Buffer& src, Buffer& dest, size_t src_offset, size_t dest_offset);
     
-    template <size_t global, size_t local> void runKernel(std::shared_ptr<Kernel> kernel, unsigned int dim) {
+    template <size_t global, size_t local> void runKernel(std::shared_ptr<Kernel> kernel) {
         logInfo("Calling CommandQueue::runKernel");
 
         std::vector<size_t> global_sizes;
         std::vector<size_t> local_sizes;
 
-        for(unsigned int i = 0; i < dim; i++) {
-            global_sizes.push_back(global);
-            local_sizes.push_back(local);
-        }
+        global_sizes.push_back(global);
+        local_sizes.push_back(local);
 
         logInfo("Calling clEnqueueNDRangeKernel");
-        result = clEnqueueNDRangeKernel(queue, kernel->getId(), dim, nullptr, global_sizes.data(), local_sizes.data(), 0, nullptr, nullptr);
+        result = clEnqueueNDRangeKernel(queue, kernel->getId(), 1, nullptr, global_sizes.data(), local_sizes.data(), 0, nullptr, nullptr);
+        logInfo("clEnqueueNDRangeKernel called");
+
+        if(result != CL_SUCCESS) {
+            logError("clEnqueueNDRangeKernel()");
+            return;
+        }
+
+        logInfo("CommandQueue::runKernel");
+    };
+
+    template <size_t global_x, size_t global_y, size_t local_x, size_t local_y> void runKernel(std::shared_ptr<Kernel> kernel) {
+        logInfo("Calling CommandQueue::runKernel");
+
+        std::vector<size_t> global_sizes;
+        std::vector<size_t> local_sizes;
+
+        global_sizes.push_back(global_x);
+        global_sizes.push_back(global_y)
+        local_sizes.push_back(local_x);
+        local_sizes.push_back(local_y);
+
+        logInfo("Calling clEnqueueNDRangeKernel");
+        result = clEnqueueNDRangeKernel(queue, kernel->getId(), 2, nullptr, global_sizes.data(), local_sizes.data(), 0, nullptr, nullptr);
+        logInfo("clEnqueueNDRangeKernel called");
+
+        if(result != CL_SUCCESS) {
+            logError("clEnqueueNDRangeKernel()");
+            return;
+        }
+
+        logInfo("CommandQueue::runKernel");
+    };
+
+    template <size_t global_x, size_t global_y, size_t global_z, size_t local_x, size_t local_y, size_t local_z> void runKernel(std::shared_ptr<Kernel> kernel) {
+        logInfo("Calling CommandQueue::runKernel");
+
+        std::vector<size_t> global_sizes;
+        std::vector<size_t> local_sizes;
+
+        global_sizes.push_back(global_x);
+        global_sizes.push_back(global_y);
+        global_sizes.push_back(global_z);
+        local_sizes.push_back(local_x);
+        local_sizes.push_back(local_y);
+        local_sizes.push_back(local_z);
+
+        logInfo("Calling clEnqueueNDRangeKernel");
+        result = clEnqueueNDRangeKernel(queue, kernel->getId(), 3, nullptr, global_sizes.data(), local_sizes.data(), 0, nullptr, nullptr);
         logInfo("clEnqueueNDRangeKernel called");
 
         if(result != CL_SUCCESS) {

@@ -15,3 +15,7 @@ Buffer::Buffer(Context& context, cl_mem_flags flags, size_t size) {
 
     logInfo("Buffer created");
 }
+
+Buffer::~Buffer() {
+    clReleaseMemObject(buffer);
+}
