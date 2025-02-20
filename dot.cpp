@@ -16,14 +16,7 @@
 
 #define SIZE 262144
 #define THREADS 4096
-
-int reduce(uint n, int *v) {
-    int result = 0;
-    for(uint i = 0; i < n; i++) {
-        result += v[i];
-    }
-    return result;
-}
+#define GROUPS 256
 
 int dot(uint n, int *a, int *b) {
     int dot_result = 0;
@@ -35,9 +28,11 @@ int dot(uint n, int *a, int *b) {
 
 int main() {
     //allocate memory on the host
-    int A_h[SIZE], B_h[SIZE], C_h[THREADS];
+    int A_h[SIZE], B_h[SIZE], c;
+    c = 0;
+    int *result = &c;
     uint len = SIZE;
-    int dot_result_h, dot_result_d;
+    int dot_result_h;
     std::mt19937 generator(std::time(0));
     std::uniform_int_distribution<int> distribution(-4096, 4096);
 
@@ -102,9 +97,9 @@ int main() {
     }
 
     //allocate a buffer for C_h
-    Buffer cBuffer(context, CL_MEM_WRITE_ONLY, THREADS * sizeof(int));
-    if(!cBuffer.checkResult(CL_SUCCESS)) {
-        std::cout << "Could not create C_h buffer" << std::endl;
+    Buffer resultBuffer(context, CL_MEM_WRITE_ONLY, sizeof(int));
+    if(!resultBuffer.checkResult(CL_SUCCESS)) {
+        std::cout << "Could not create result buffer" << std::endl;
         return -1;
     }
 
@@ -162,28 +157,27 @@ int main() {
         return -1;
     }
 
-    dot->setArg(3, cBuffer);
+    dot->setArg(3, resultBuffer);
     if(!dot->checkResult(CL_SUCCESS)) {
         std::cout << "Could not set c argument" << std::endl;
         return -1;
     }
 
     //run the kernel
-    queue.runKernel<THREADS, 1>(dot, 1);
+    queue.runKernel<THREADS, GROUPS>(dot, 1);
     if(!queue.checkResult(CL_SUCCESS)) {
         std::cout << "Could not run dot kernel" << std::endl;
         return -1;
     }
 
     //copy the data back to the host
-    queue.readBuffer(cBuffer, true, 0, C_h);
+    queue.readBuffer(resultBuffer, true, 0, result);
     if(!queue.checkResult(CL_SUCCESS)) {
-        std::cout << "Could not read C_h buffer" << std::endl;
+        std::cout << "Could not read result buffer" << std::endl;
         return -1;
     }
 
-    dot_result_d = reduce(THREADS, C_h);
-    std::cout << "Dot result on GPU: " << dot_result_d << std::endl;
+    std::cout << "Dot result on GPU: " << *result << std::endl;
 
     return 0;
 }

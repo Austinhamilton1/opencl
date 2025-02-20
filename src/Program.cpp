@@ -11,8 +11,10 @@ Program::Program(Context& context, std::string source_file) {
     if(input_file.is_open()) {
         std::string line;
         //read the file line by line
-        while(std::getline(input_file, line))
+        while(std::getline(input_file, line)) {
             source += line;
+            source += "\n";
+        }
     }
     else {
         //log an error
