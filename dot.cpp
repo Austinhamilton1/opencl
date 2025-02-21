@@ -47,57 +47,57 @@ int main() {
     std::cout << "Dot result on CPU: " << dot_result_h << std::endl;
 
     //get available platforms
-    std::vector<Platform> all_platforms = Platform::allPlatforms();
+    std::vector<cl::Platform> all_platforms = cl::Platform::allPlatforms();
     if(all_platforms.size() == 0) {
         std::cout << "No platforms available" << std::endl;
         return 0;
     }
 
     //get default platform
-    Platform default_platform = all_platforms[0];
+    cl::Platform default_platform = all_platforms[0];
     std::cout << "Using platform: " << default_platform.getInfo<CL_PLATFORM_NAME, char>() << std::endl;
 
     //get available devices
-    std::vector<Device> all_devices = Device::allDevices(default_platform);
+    std::vector<cl::Device> all_devices = cl::Device::allDevices(default_platform);
     if(all_devices.size() == 0) {
         std::cout << "No devices available" << std::endl;
         return 0;
     }
 
     //get default device
-    Device default_device = all_devices[0];
+    cl::Device default_device = all_devices[0];
     std::cout << "Using device: " << default_device.getInfo<CL_DEVICE_NAME, char>() << std::endl;
 
     //create a context with all devices
-    Context context(all_devices);
+    cl::Context context(all_devices);
     if(!context.checkResult(CL_SUCCESS)) {
         std::cout << "Could not create context" << std::endl;
         return -1;
     }
 
     //create a queue on the default device
-    CommandQueue queue(context, default_device);
+    cl::CommandQueue queue(context, default_device);
     if(!queue.checkResult(CL_SUCCESS)) {
         std::cout << "Could not create command queue" << std::endl;
         return -1;
     }
 
     //allocate a buffer for A_h
-    Buffer aBuffer(context, CL_MEM_READ_ONLY, SIZE * sizeof(int));
+    cl::Buffer aBuffer(context, CL_MEM_READ_ONLY, SIZE * sizeof(int));
     if(!aBuffer.checkResult(CL_SUCCESS)) {
         std::cout << "Could not create A_h buffer" << std::endl;
         return -1;
     }
 
     //allocate a buffer for B_h
-    Buffer bBuffer(context, CL_MEM_READ_ONLY, SIZE * sizeof(int));
+    cl::Buffer bBuffer(context, CL_MEM_READ_ONLY, SIZE * sizeof(int));
     if(!bBuffer.checkResult(CL_SUCCESS)) {
         std::cout << "Could not create B_h buffer" << std::endl;
         return -1;
     }
 
     //allocate a buffer for C_h
-    Buffer resultBuffer(context, CL_MEM_WRITE_ONLY, sizeof(int));
+    cl::Buffer resultBuffer(context, CL_MEM_WRITE_ONLY, sizeof(int));
     if(!resultBuffer.checkResult(CL_SUCCESS)) {
         std::cout << "Could not create result buffer" << std::endl;
         return -1;
@@ -116,7 +116,7 @@ int main() {
     }
 
     //create a program to run on the device
-    Program program(context, "kernels/dot.cl");
+    cl::Program program(context, "kernels/dot.cl");
     if(!program.checkResult(CL_SUCCESS)) {
         std::cout << "Could not create program" << std::endl;
         return -1;
@@ -138,7 +138,7 @@ int main() {
     }
 
     //add the arguments to the dot kernel
-    std::shared_ptr<Kernel> dot = program.getKernel("dot");
+    std::shared_ptr<cl::Kernel> dot = program.getKernel("dot");
     dot->setArg<uint>(0, &len);
     if(!dot->checkResult(CL_SUCCESS)) {
         std::cout << "Could not set len argument" << std::endl;
@@ -164,7 +164,7 @@ int main() {
     }
 
     //run the kernel
-    queue.runKernel<THREADS, GROUPS>(dot, 1);
+    queue.runKernel<THREADS, GROUPS>(dot);
     if(!queue.checkResult(CL_SUCCESS)) {
         std::cout << "Could not run dot kernel" << std::endl;
         return -1;

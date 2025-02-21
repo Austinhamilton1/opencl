@@ -2,7 +2,7 @@
 
 #include "Context.h"
 
-Context::Context(std::vector<Device> devices) {
+cl::Context::Context(std::vector<cl::Device> devices) {
     logInfo("Calling Context::Context");
 
     //add devices to the Context
@@ -26,7 +26,7 @@ Context::Context(std::vector<Device> devices) {
     logInfo("Context::Context called");
 };
 
-Context::~Context() {
+cl::Context::~Context() {
     logInfo("Calling clReleaseContext");
     clReleaseContext(context);
     logInfo("clReleaseContext called");

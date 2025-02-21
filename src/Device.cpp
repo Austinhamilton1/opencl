@@ -1,6 +1,6 @@
 #include "Device.h"
 
-std::vector<Device> Device::allDevices(Platform& platform) {
+std::vector<cl::Device> cl::Device::allDevices(cl::Platform& platform) {
     int result; //device query device
     unsigned int num_devices; //number of devices
     std::vector<Device> all_devices;

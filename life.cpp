@@ -37,44 +37,44 @@ int main() {
     }
 
     //get list of available platforms
-    std::vector<Platform> all_platforms = Platform::allPlatforms();
+    std::vector<cl::Platform> all_platforms = cl::Platform::allPlatforms();
     if(all_platforms.size() == 0) {
         std::cout << "No compute platforms found" << std::endl;
         return 0;
     }
 
     //set default platform
-    Platform default_platform = all_platforms[0];
+    cl::Platform default_platform = all_platforms[0];
     std::cout << "Using platform: " << default_platform.getInfo<CL_PLATFORM_NAME, char>() << std::endl;
 
     //get list of available devices
-    std::vector<Device> all_devices = Device::allDevices(default_platform);
+    std::vector<cl::Device> all_devices = cl::Device::allDevices(default_platform);
     if(all_devices.size() == 0) {
         std::cout << "No computing devices found" << std::endl;
         return 0;
     }
 
     //set default device
-    Device default_device = all_devices[0];
+    cl::Device default_device = all_devices[0];
     std::cout << "Using device: " << default_device.getInfo<CL_DEVICE_NAME, char>() << std::endl;
 
     //create a context on the devices
-    Context context(all_devices);
+    cl::Context context(all_devices);
     if(!context.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to create context: " << context.getResultString() << std::endl;
         return -1;
     }
 
     //create a device command queue on the default device
-    CommandQueue queue(context, default_device);
+    cl::CommandQueue queue(context, default_device);
     if(!context.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to create command queue: " << queue.getResultString() << std::endl;
         return -1;
     }
 
     //allocate the board buffers
-    Buffer boardBuffer(context, CL_MEM_READ_ONLY, BOARD_SIZE * BOARD_SIZE * sizeof(int));
-    Buffer nextBuffer(context, CL_MEM_WRITE_ONLY, BOARD_SIZE * BOARD_SIZE * sizeof(int));
+    cl::Buffer boardBuffer(context, CL_MEM_READ_ONLY, BOARD_SIZE * BOARD_SIZE * sizeof(int));
+    cl::Buffer nextBuffer(context, CL_MEM_WRITE_ONLY, BOARD_SIZE * BOARD_SIZE * sizeof(int));
 
     if(!boardBuffer.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to create board buffer: " << boardBuffer.getResultString() << std::endl;
@@ -87,14 +87,14 @@ int main() {
     }
 
     //write the data to the board buffer
-    queue.writeBuffer(boardBuffer, true, 0, board);
+    queue.writeBufferRect(boardBuffer, true, 0, 0, 0, BOARD_SIZE * sizeof(int), BOARD_SIZE, 1, board);
     if(!queue.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to write to board buffer: " << boardBuffer.getResultString() << std::endl;
         return -1;
     }
 
     //create the program
-    Program program(context, "kernels/life.cl");
+    cl::Program program(context, "kernels/life.cl");
     if(!program.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to create program: " << program.getResultString() << std::endl;
         return -1;
@@ -116,7 +116,7 @@ int main() {
     }
 
     //set the kernel arguments
-    std::shared_ptr<Kernel> life = program.getKernel("life");
+    std::shared_ptr<cl::Kernel> life = program.getKernel("life");
     
     life->setArg(0, boardBuffer);
     if(!life->checkResult(CL_SUCCESS)) {
@@ -130,14 +130,14 @@ int main() {
     }
 
     //run the kernel
-    queue.runKernel<BOARD_SIZE, 1>(life, 2);
+    queue.runKernel<BOARD_SIZE, BOARD_SIZE, 1, 1>(life);
     if(!queue.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to run kernel: " << queue.getResultString() << std::endl;
         return -1;
     }
 
     //read the data back from the next board buffer
-    queue.readBuffer(nextBuffer, true, 0, next_board);
+    queue.readBufferRect(nextBuffer, true, 0, 0, 0, BOARD_SIZE * sizeof(int), BOARD_SIZE, 1, next_board);
     if(!queue.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to read data back to host: " << queue.getResultString() << std::endl;
     }

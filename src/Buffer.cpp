@@ -1,7 +1,7 @@
 #include "Buffer.h"
 #include "Context.h"
 
-Buffer::Buffer(Context& context, cl_mem_flags flags, size_t size) {
+cl::Buffer::Buffer(cl::Context& context, cl_mem_flags flags, size_t size) {
     this->size = size;
 
     logInfo("Creating Buffer");
@@ -16,6 +16,6 @@ Buffer::Buffer(Context& context, cl_mem_flags flags, size_t size) {
     logInfo("Buffer created");
 }
 
-Buffer::~Buffer() {
+cl::Buffer::~Buffer() {
     clReleaseMemObject(buffer);
 }

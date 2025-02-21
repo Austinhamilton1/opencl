@@ -1,11 +1,11 @@
 #include "Kernel.h"
 #include "Buffer.h"
 
-Kernel::~Kernel() {
+cl::Kernel::~Kernel() {
     clReleaseKernel(kernel);
 }
 
-void Kernel::setArg(unsigned int index, Buffer& buffer) {
+void cl::Kernel::setArg(unsigned int index, cl::Buffer& buffer) {
     logInfo("Calling Kernel::setArg");
     size_t arg_size = sizeof(cl_mem);
 

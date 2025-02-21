@@ -17,33 +17,33 @@
 
 int main() {
     //get available platforms
-    std::vector<Platform> all_platforms = Platform::allPlatforms();
+    std::vector<cl::Platform> all_platforms = cl::Platform::allPlatforms();
     if(all_platforms.size() == 0) {
         std::cout << "No platforms" << std::endl;
         return 0;
     }
 
     //get the deafult platform
-    Platform default_platform = all_platforms[0];
+    cl::Platform default_platform = all_platforms[0];
     std::cout << "Using platform: " << default_platform.getInfo<CL_PLATFORM_NAME, char>() << std::endl;
 
     //get available devices
-    std::vector<Device> all_devices = Device::allDevices(default_platform);
+    std::vector<cl::Device> all_devices = cl::Device::allDevices(default_platform);
     if(all_devices.size() == 0) {
         std::cout << "No devices" << std::endl;
         return 0;
     }
 
     //get the default device
-    Device default_device = all_devices[0];
+    cl::Device default_device = all_devices[0];
     std::cout << "Using device: " << default_device.getInfo<CL_DEVICE_NAME, char>() << std::endl;
 
     //create the context for the devices
-    Context context(all_devices);
+    cl::Context context(all_devices);
     std::cout << "Created a context with " << *(context.getInfo<CL_CONTEXT_NUM_DEVICES, int>().get()) << " devices" << std::endl;
 
     //create the command queue
-    CommandQueue queue(context, default_device);
+    cl::CommandQueue queue(context, default_device);
     std::cout << "Created a command queue with " << *(queue.getInfo<CL_QUEUE_REFERENCE_COUNT, int>().get()) << " reference counts" << std::endl;
 
     //allocate the memory on the host
@@ -57,9 +57,9 @@ int main() {
 
     //create the buffers for the kernel
     std::cout << "Creating buffers" << std::endl;
-    Buffer aBuffer(context, CL_MEM_READ_ONLY, SIZE * sizeof(int));
-    Buffer bBuffer(context, CL_MEM_READ_ONLY, SIZE * sizeof(int));
-    Buffer cBuffer(context, CL_MEM_WRITE_ONLY, SIZE * sizeof(int));
+    cl::Buffer aBuffer(context, CL_MEM_READ_ONLY, SIZE * sizeof(int));
+    cl::Buffer bBuffer(context, CL_MEM_READ_ONLY, SIZE * sizeof(int));
+    cl::Buffer cBuffer(context, CL_MEM_WRITE_ONLY, SIZE * sizeof(int));
     std::cout << "Buffers created" << std::endl;
 
     //write the data to the buffers
@@ -81,7 +81,7 @@ int main() {
 
     //create the program
     std::cout << "Creating program" << std::endl;
-    Program main(context, "kernels/vadd.cl");
+    cl::Program main(context, "kernels/vadd.cl");
     if(!context.checkResult(CL_SUCCESS)) {
         std::cout << "Could not create program" << std::endl;
         return -1;
@@ -109,7 +109,7 @@ int main() {
 
     //set arguments
     std::cout << "Setting arguments" << std::endl;
-    std::shared_ptr<Kernel> vadd = main.getKernel("vadd");
+    std::shared_ptr<cl::Kernel> vadd = main.getKernel("vadd");
     
     //set first argument
     vadd->setArg(0, aBuffer);
@@ -137,7 +137,7 @@ int main() {
 
     //run the kernel and time it
     std::cout << "Running kernel" << std::endl;
-    queue.runKernel<4096, 1>(vadd, 1);
+    queue.runKernel<4096, 1>(vadd);
     if(!queue.checkResult(CL_SUCCESS)) {
         std::cout << "Could not run kernel" << std::endl;
         return -1;

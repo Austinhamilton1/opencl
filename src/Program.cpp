@@ -3,7 +3,7 @@
 #include "Program.h"
 #include "Context.h"
 
-Program::Program(Context& context, std::string source_file) {
+cl::Program::Program(cl::Context& context, std::string source_file) {
     logInfo("Calling Program::Program");
 
     logInfo("Reading source file");
@@ -42,11 +42,11 @@ Program::Program(Context& context, std::string source_file) {
     logInfo("Program::Program called");
 }
 
-Program::~Program() {
+cl::Program::~Program() {
     clReleaseProgram(program);
 }
 
-void Program::build() {
+void cl::Program::build() {
     logInfo("Calling Program::build");
 
     std::vector<cl_device_id> device_ids;
@@ -65,7 +65,7 @@ void Program::build() {
     logInfo("Program::build called");
 }
 
-void Program::addKernel(std::string name) {
+void cl::Program::addKernel(std::string name) {
     logInfo("Calling Program::addKernel");
 
     logInfo("Calling clCreateKernel");
@@ -83,7 +83,7 @@ void Program::addKernel(std::string name) {
     kernels[name] = kernel;
 }
 
-std::shared_ptr<Kernel> Program::getKernel(std::string name) {
+std::shared_ptr<cl::Kernel> cl::Program::getKernel(std::string name) {
     logInfo("Calling Program::getKernel");
     logInfo("Program::getKernel called");
     return kernels[name];

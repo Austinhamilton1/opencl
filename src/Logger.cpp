@@ -4,7 +4,7 @@
 
 #include "Logger.h"
 
-std::string Logger::getMessage(unsigned int level) {
+std::string cl::Logger::getMessage(unsigned int level) {
     std::string message;
 
     //get info level messages
@@ -28,7 +28,7 @@ std::string Logger::getMessage(unsigned int level) {
     return message;
 }
 
-void Logger::logInfo(std::string message) {
+void cl::Logger::logInfo(std::string message) {
     //add the time and message to info
     auto now = std::chrono::high_resolution_clock::now();
     auto duration  = std::chrono::duration_cast<std::chrono::microseconds>(now - init_time);
@@ -41,7 +41,7 @@ void Logger::logInfo(std::string message) {
     info += infoLine;
 }
 
-void Logger::logDebug(std::string message) {
+void cl::Logger::logDebug(std::string message) {
     //add the time and message to debug
     auto now = std::chrono::high_resolution_clock::now();
     auto duration  = std::chrono::duration_cast<std::chrono::microseconds>(now - init_time);
@@ -54,7 +54,7 @@ void Logger::logDebug(std::string message) {
     debug += debugLine;
 }
 
-void Logger::logError(std::string message) {
+void cl::Logger::logError(std::string message) {
     //add the time and message to error
     auto now = std::chrono::high_resolution_clock::now();
     auto duration  = std::chrono::duration_cast<std::chrono::microseconds>(now - init_time);
@@ -67,7 +67,7 @@ void Logger::logError(std::string message) {
     error += errorLine;
 }
 
-std::string Logger::getResultString() {
+std::string cl::Logger::getResultString() {
     std::string result_str;
 
     //get the string representation of the logger's result

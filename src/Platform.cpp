@@ -1,6 +1,6 @@
 #include "Platform.h"
 
-std::vector<Platform> Platform::allPlatforms() {
+std::vector<cl::Platform> cl::Platform::allPlatforms() {
     int result; //result of query
     unsigned int num_platforms; //number of available platforms
 

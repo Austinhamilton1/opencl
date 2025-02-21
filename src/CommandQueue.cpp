@@ -3,7 +3,7 @@
 #include "Device.h"
 #include "Buffer.h"
 
-CommandQueue::CommandQueue(Context& context, Device& device) {
+cl::CommandQueue::CommandQueue(cl::Context& context, Device& device) {
     logInfo("Calling CommandQueue::CommandQueue");
 
     logInfo("Calling clCreateCommandQueueWithProperties");
@@ -19,13 +19,13 @@ CommandQueue::CommandQueue(Context& context, Device& device) {
     logInfo("CommandQueue::CommandQueue called");
 }
 
-CommandQueue::~CommandQueue() {
+cl::CommandQueue::~CommandQueue() {
     logInfo("Calling clReleaseCommandQueue");
     clReleaseCommandQueue(queue);
     logInfo("clReleaseCommandQueue called");
 }
 
-void CommandQueue::writeBuffer(Buffer& buffer, bool blocking, size_t offset, const void *ptr) {
+void cl::CommandQueue::writeBuffer(cl::Buffer& buffer, bool blocking, size_t offset, const void *ptr) {
     logInfo("Calling ComandQueue::writeBuffer");
 
     //enqueue a write buffer command to the queue
@@ -42,7 +42,7 @@ void CommandQueue::writeBuffer(Buffer& buffer, bool blocking, size_t offset, con
     logInfo("CommandQueue::writeBuffer called");
 }
 
-void CommandQueue::readBuffer(Buffer& buffer, bool blocking, size_t offset, void *ptr) {
+void cl::CommandQueue::readBuffer(cl::Buffer& buffer, bool blocking, size_t offset, void *ptr) {
     logInfo("Calling CommandQueue::readBuffer");
 
     //enqueue a read buffer command to the queue
@@ -59,7 +59,7 @@ void CommandQueue::readBuffer(Buffer& buffer, bool blocking, size_t offset, void
     logInfo("CommandQueue::readBuffer called");
 }
 
-void CommandQueue::copyBuffer(Buffer& src, Buffer& dest, size_t src_offset, size_t dest_offset) {
+void cl::CommandQueue::copyBuffer(cl::Buffer& src, cl::Buffer& dest, size_t src_offset, size_t dest_offset) {
     logInfo("Calling CommandQueue::copyBuffer");
 
     //enqueue a copy buffer command to the queue
@@ -75,3 +75,64 @@ void CommandQueue::copyBuffer(Buffer& src, Buffer& dest, size_t src_offset, size
 
     logInfo("CommandQueue::copyBuffer called");
 }
+
+void cl::CommandQueue::writeBufferRect(cl::Buffer& buffer, bool blocking, size_t offset_x, size_t offset_y, size_t offset_z, size_t width_bytes, size_t height_count, size_t depth_count, const void *data) {
+    //set up data for the call
+    std::vector<size_t> origin;
+    std::vector<size_t> region;
+
+    //offset data
+    origin.push_back(offset_x);
+    origin.push_back(offset_y);
+    origin.push_back(offset_z);
+
+    //size data
+    region.push_back(width_bytes);
+    region.push_back(height_count);
+    region.push_back(depth_count);
+    
+    logInfo("Calling CommandQueue::writeBufferRect");
+
+    //enqueue a write buffer rect command to the queue
+    logInfo("Calling clEnqueueWriteBufferRect");
+    result = clEnqueueWriteBufferRect(queue, buffer.getId(), blocking, origin.data(), origin.data(), region.data(), 0, 0, 0, 0, data, 0, nullptr, nullptr);
+    logInfo("clEnqueueWriteBufferRect called");
+
+    if(result != CL_SUCCESS) {
+        logError("clEnqueueWriteBufferRect()");
+        return;
+    }
+
+    logInfo("CommandQueue::writeBufferRect called");
+}
+
+void cl::CommandQueue::readBufferRect(cl::Buffer& buffer, bool blocking, size_t offset_x, size_t offset_y, size_t offset_z, size_t width_bytes, size_t height_count, size_t depth_count, void *data) {
+    //set up data for the call
+    std::vector<size_t> origin;
+    std::vector<size_t> region;
+
+    //offset data
+    origin.push_back(offset_x);
+    origin.push_back(offset_y);
+    origin.push_back(offset_z);
+
+    //size data
+    region.push_back(width_bytes);
+    region.push_back(height_count);
+    region.push_back(depth_count);
+
+    logInfo("Calling CommandQueue::readBufferRect");
+
+    //enqueue a write buffer rect command to the queue
+    logInfo("Calling clEnqueueReadBufferRect");
+    result = clEnqueueReadBufferRect(queue, buffer.getId(), blocking, origin.data(), origin.data(), region.data(), 0, 0, 0, 0, data, 0, nullptr, nullptr);
+    logInfo("clEnqueueReadBufferRect called");
+
+    if(result != CL_SUCCESS) {
+        logError("clEnqueueReadBufferRect()");
+        return;
+    }
+
+    logInfo("CommandQueue::readBufferRect called");
+}
+    
