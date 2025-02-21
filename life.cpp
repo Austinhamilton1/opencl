@@ -14,7 +14,7 @@
 #include "Program.h"
 #include "Kernel.h"
 
-#define BOARD_SIZE 64
+#define BOARD_SIZE 12
 
 void printBoard(int board[BOARD_SIZE][BOARD_SIZE]) {
     for(int i = 0; i < BOARD_SIZE; i++) {
@@ -32,9 +32,14 @@ int main() {
 
     for(int i = 0; i < BOARD_SIZE; i++) {
         for(int j = 0; j < BOARD_SIZE; j++) {
-            board[i][j] = distribution(generator);
+            board[i][j] = 0;
         }
     }
+    board[3][6] = 1;
+    board[4][5] = 1;
+    board[4][6] = 1;
+    board[5][6] = 1;
+    board[5][7] = 1;
 
     //get list of available platforms
     std::vector<cl::Platform> all_platforms = cl::Platform::allPlatforms();
@@ -129,25 +134,30 @@ int main() {
         return -1;
     }
 
-    //run the kernel
-    queue.runKernel<BOARD_SIZE, BOARD_SIZE, 1, 1>(life);
-    if(!queue.checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to run kernel: " << queue.getResultString() << std::endl;
-        return -1;
-    }
-
-    //read the data back from the next board buffer
-    queue.readBufferRect(nextBuffer, true, 0, 0, 0, BOARD_SIZE * sizeof(int), BOARD_SIZE, 1, next_board);
-    if(!queue.checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to read data back to host: " << queue.getResultString() << std::endl;
-    }
-
-    //print the two boards
+    //print the original board
     printBoard(board);
 
-    std::cout << std::endl;
+    //print the next 5 iterations
+    for(int i = 0; i < 5; i++) {
+        //run the kernel
+        queue.runKernel<BOARD_SIZE, BOARD_SIZE, 1, 1>(life);
+        if(!queue.checkResult(CL_SUCCESS)) {
+            std::cout << "Failed to run kernel: " << queue.getResultString() << std::endl;
+            return -1;
+        }
 
-    printBoard(next_board);
+        //read the data back from the next board buffer
+        queue.readBufferRect(nextBuffer, true, 0, 0, 0, BOARD_SIZE * sizeof(int), BOARD_SIZE, 1, next_board);
+        if(!queue.checkResult(CL_SUCCESS)) {
+            std::cout << "Failed to read data back to host: " << queue.getResultString() << std::endl;
+        }
+
+        std::cout << std::endl;
+
+        printBoard(next_board);
+
+        queue.copyBufferRect(nextBuffer, boardBuffer, 0, 0, 0, BOARD_SIZE * sizeof(int), BOARD_SIZE, 1);
+    }
 
     return 0;
 }
