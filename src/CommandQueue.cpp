@@ -135,4 +135,33 @@ void cl::CommandQueue::readBufferRect(cl::Buffer& buffer, bool blocking, size_t 
 
     logInfo("CommandQueue::readBufferRect called");
 }
-    
+
+void cl::CommandQueue::copyBufferRect(cl::Buffer& src, cl::Buffer& dest, size_t offset_x, size_t offset_y, size_t offset_z, size_t width_bytes, size_t height_count, size_t depth_count) {
+    //set up data for the call
+    std::vector<size_t> origin;
+    std::vector<size_t> region;
+
+    //offset data
+    origin.push_back(offset_x);
+    origin.push_back(offset_y);
+    origin.push_back(offset_z);
+
+    //size data
+    region.push_back(width_bytes);
+    region.push_back(height_count);
+    region.push_back(depth_count);
+
+    logInfo("Calling CommandQueue::copyBufferRect");
+
+    //enqueue a write buffer rect command to the queue
+    logInfo("Calling clEnqueueCopyBufferRect");
+    result = clEnqueueCopyBufferRect(queue, src.getId(), dest.getId(), origin.data(), origin.data(), region.data(), 0, 0, 0, 0, 0, nullptr, nullptr);
+    logInfo("clEnqueueCopyBufferRect called");
+
+    if(result != CL_SUCCESS) {
+        logError("clEnqueueCopyBufferRect()");
+        return;
+    }
+
+    logInfo("CommandQueue::copyBufferRect called");
+}

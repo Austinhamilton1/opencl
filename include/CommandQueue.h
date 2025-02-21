@@ -28,7 +28,8 @@ namespace cl {
 
         void writeBufferRect(Buffer& buffer, bool blocking, size_t offset_x, size_t offset_y, size_t offset_z, size_t width_bytes, size_t height_count, size_t depth_count, const void *data);
         void readBufferRect(Buffer& buffer, bool blocking, size_t offset_x, size_t offset_y, size_t offset_z, size_t width_bytes, size_t height_count, size_t depth_count, void *data);
-        
+        void copyBufferRect(Buffer& src, Buffer& dest, size_t offset_x, size_t offset_y, size_t offset_z, size_t width_bytes, size_t height_count, size_t depth_count);
+
         template <size_t global, size_t local> void runKernel(std::shared_ptr<Kernel> kernel) {
             logInfo("Calling CommandQueue::runKernel");
 
