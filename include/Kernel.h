@@ -5,9 +5,9 @@
 
 #include "Logger.h"
 
-class Buffer;
-
 namespace cl {
+    class Buffer;
+    
     class Kernel : public Logger {
     private:
         cl_kernel kernel;

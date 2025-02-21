@@ -10,9 +10,9 @@
 #include "Kernel.h"
 #include "Device.h"
 
-class Context;
-
 namespace cl {
+    class Context;
+
     class Program : public Logger {
     private:
         cl_program program;

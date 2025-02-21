@@ -7,11 +7,11 @@
 #include "Logger.h"
 #include "Kernel.h"
 
-class Buffer;
-class Context;
-class Device;
-
 namespace cl {
+    class Buffer;
+    class Context;
+    class Device;
+
     class CommandQueue : public Logger {
     private:
         cl_command_queue queue;

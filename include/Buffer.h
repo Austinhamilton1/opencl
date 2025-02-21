@@ -3,9 +3,9 @@
 
 #include "Logger.h"
 
-class Context;
-
 namespace cl {
+    class Context;
+
     class Buffer : public Logger {
     private:
         cl_mem buffer;

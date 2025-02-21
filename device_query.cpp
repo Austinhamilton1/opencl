@@ -7,7 +7,7 @@
 #include "Device.h"
 
 int main() {
-    std::vector<Platform> all_platforms = Platform::allPlatforms();
+    std::vector<cl::Platform> all_platforms = cl::Platform::allPlatforms();
 
     if(all_platforms.size() == 0) {
         std::cout << "No platforms found" << std::endl;
@@ -16,7 +16,7 @@ int main() {
 
     std::cout << all_platforms.size() << " platform(s) found" << std::endl;
 
-    Platform default_platform = all_platforms[0];
+    cl::Platform default_platform = all_platforms[0];
 
     std::cout << "Platform name: " << default_platform.getInfo<CL_PLATFORM_NAME, char>() << std::endl;
 
@@ -25,14 +25,14 @@ int main() {
         return -1;
     }
 
-    std::vector<Device> all_devices = Device::allDevices(default_platform);
+    std::vector<cl::Device> all_devices = cl::Device::allDevices(default_platform);
 
     if(all_devices.size() == 0) {
         std::cout << "No devices found" << std::endl;
         return 0;
     }
 
-    Device default_device = all_devices[0];
+    cl::Device default_device = all_devices[0];
     std::cout << "\tDevice Name: " << default_device.getInfo<CL_DEVICE_NAME, char>() << std::endl;
     std::cout << "\tDevice Vendor: " << default_device.getInfo<CL_DEVICE_VENDOR, char>() << std::endl;
     std::cout << "\tDevice Version: " << default_device.getInfo<CL_DEVICE_VERSION, char>() << std::endl;
