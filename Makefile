@@ -12,7 +12,7 @@ LDFLAGS=-lOpenCL
 
 .PHONY: all clean
 
-all: $(BIN)/device_query $(BIN)/vadd $(BIN)/dot $(BIN)/life $(BIN)/sobel
+all: $(BIN)/device_query $(BIN)/vadd $(BIN)/dot $(BIN)/life $(BIN)/sobel $(BIN)/gauss
 
 $(BIN)/device_query: $(OBJ)/device_query.o $(OBJS) | $(BIN)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ)/device_query.o $(OBJS) $(LDFLAGS)
@@ -29,6 +29,9 @@ $(BIN)/life: $(OBJ)/life.o $(OBJS) | $(BIN)
 $(BIN)/sobel: $(OBJ)/sobel.o $(OBJS) | $(BIN)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ)/sobel.o $(OBJS) $(LDFLAGS)
 
+$(BIN)/gauss: $(OBJ)/gauss.o $(OBJS) | $(BIN)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ)/gauss.o $(OBJS) $(LDFLAGS)
+
 $(OBJ)/device_query.o: device_query.cpp | $(OBJ)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
@@ -42,6 +45,9 @@ $(OBJ)/life.o: life.cpp | $(OBJ)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(OBJ)/sobel.o: sobel.cpp | $(OBJ)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+$(OBJ)/gauss.o: gauss.cpp | $(OBJ)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(OBJ)/Buffer.o : $(SRC)/Buffer.cpp | $(OBJ)

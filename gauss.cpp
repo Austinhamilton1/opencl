@@ -67,8 +67,8 @@ std::vector<std::vector<std::vector<float>>> readPPM(const char *filename) {
 }
 
 // Function to write a 3D float vector (normalized RGB values) to a binary PPM file
-void writePPM(const char* filename, const std::vector<std::vector<float>>& image) {
-    if (image.empty() || image[0].empty()) {
+void writePPM(const char* filename, const std::vector<std::vector<std::vector<float>>>& image) {
+    if (image.empty() || image[0].empty() || image[0][0].empty()) {
         std::cerr << "Error: Invalid image dimensions!" << std::endl;
         return;
     }
@@ -84,13 +84,17 @@ void writePPM(const char* filename, const std::vector<std::vector<float>>& image
     }
 
     // Write PGM header
-    file << "P5\n" << width << " " << height << "\n" << maxVal << "\n";
+    file << "P6\n" << width << " " << height << "\n" << maxVal << "\n";
 
     // Write binary pixel data
     for (int i = 0; i < height; ++i) {
         for (int j = 0; j < width; ++j) {
-            unsigned char pixel = static_cast<unsigned char>(image[i][j] * maxVal);
-            file.write(reinterpret_cast<char*>(&pixel), 1);
+            unsigned char r = static_cast<unsigned char>(image[i][j][0] * maxVal);
+            unsigned char g = static_cast<unsigned char>(image[i][j][1] * maxVal);
+            unsigned char b = static_cast<unsigned char>(image[i][j][2] * maxVal);
+            file.write(reinterpret_cast<char*>(&r), 1);
+            file.write(reinterpret_cast<char*>(&g), 1);
+            file.write(reinterpret_cast<char*>(&b), 1);
         }
     }
 
@@ -113,16 +117,18 @@ int main(int argc, char *argv[]) {
 
     //allocate memory for buffer
     std::vector<float> img_data;
-    std::vector<float> gray_data;
+    std::vector<float> out_data;
     for(int i = 0; i < height; i++) {
         for(int j = 0; j < width; j++) {
             img_data.push_back(rgb[i][j][0]);
             img_data.push_back(rgb[i][j][1]);
             img_data.push_back(rgb[i][j][2]);
-            gray_data.push_back(0.0f);
+            out_data.push_back(0.0f);
+            out_data.push_back(0.0f);
+            out_data.push_back(0.0f);
         }
     }
-    std::vector<float> sobel_data((width - 2) * (height - 2));
+    float sigma = 3.0f;
 
     //look for available compute platforms
     std::vector<cl::Platform> all_platforms = cl::Platform::allPlatforms();
@@ -168,16 +174,9 @@ int main(int argc, char *argv[]) {
     }
 
     //allocate the buffer for the gray scale image
-    cl::Buffer grayBuffer(context, CL_MEM_READ_WRITE, width * height * sizeof(float));
-    if(!grayBuffer.checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to create gray image buffer: " << grayBuffer.getResultString() << std::endl;
-        return -1;
-    }
-
-    //allocate the buffer for the sobel image 
-    cl::Buffer sobelBuffer(context, CL_MEM_WRITE_ONLY, (width - 2) * (height - 2) * sizeof(float));
-    if(!sobelBuffer.checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to create sobel image buffer: " << sobelBuffer.getResultString() << std::endl;
+    cl::Buffer outBuffer(context, CL_MEM_WRITE_ONLY, (width - 2) * (height - 2) * 3 * sizeof(float));
+    if(!outBuffer.checkResult(CL_SUCCESS)) {
+        std::cout << "Failed to create gray image buffer: " << outBuffer.getResultString() << std::endl;
         return -1;
     }
 
@@ -189,7 +188,7 @@ int main(int argc, char *argv[]) {
     }
 
     //create the program
-    cl::Program program(context, "kernels/sobel.cl");
+    cl::Program program(context, "kernels/gauss.cl");
     if(!program.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to create program: " << program.getResultString() << std::endl;
         return -1;
@@ -204,79 +203,59 @@ int main(int argc, char *argv[]) {
     }
 
     //add the grayscale kernel
-    program.addKernel("gray");
-    if(!program.checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to add kernel: " << program.getResultString() << std::endl;
-        return -1;
-    }
-
-    //add the sobel image edge detection kernel
-    program.addKernel("sobel");
+    program.addKernel("gauss");
     if(!program.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to add kernel: " << program.getResultString() << std::endl;
         return -1;
     }
 
     //set the arguments of the kernel
-    std::shared_ptr<cl::Kernel> gray = program.getKernel("gray");
+    std::shared_ptr<cl::Kernel> gauss = program.getKernel("gauss");
 
-    gray->setArg(0, imgBuffer);
-    if(!gray->checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to set image argument: " << gray->getResultString() << std::endl;
+    gauss->setArg<float>(0, &sigma);
+    if(!gauss->checkResult(CL_SUCCESS)) {
+        std::cout << "Failed to set image argument: " << gauss->getResultString() << std::endl;
         return -1;
     }
 
-    gray->setArg(1, grayBuffer);
-    if(!gray->checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to set gray image argument: " << gray->getResultString() << std::endl;
+    gauss->setArg(1, imgBuffer);
+    if(!gauss->checkResult(CL_SUCCESS)) {
+        std::cout << "Failed to set image argument: " << gauss->getResultString() << std::endl;
         return -1;
     }
 
-    //set the arguments of the kernel
-    std::shared_ptr<cl::Kernel> sobel = program.getKernel("sobel");
-
-    sobel->setArg(0, grayBuffer);
-    if(!sobel->checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to set gray image argument: " << sobel->getResultString() << std::endl;
+    gauss->setArg(2, outBuffer);
+    if(!gauss->checkResult(CL_SUCCESS)) {
+        std::cout << "Failed to set gray image argument: " << gauss->getResultString() << std::endl;
         return -1;
     }
 
-    sobel->setArg(1, sobelBuffer);
-    if(!sobel->checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to set sobel image argument: " << sobel->getResultString() << std::endl;
-        return -1;
-    }
-
-    //run the gray scale kernel
-    queue.runKernel(gray, height, width, 1, 1);
+    //run the gauss kernel
+    queue.runKernel(gauss, height, width, 1, 1);
     if(!queue.checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to run gray scale kernel: " << queue.getResultString() << std::endl;
-        return -1;
-    }
-
-    //run the sobel kernel
-    queue.runKernel(sobel, height, width, 1, 1);
-    if(!queue.checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to run sobel kernel: " << queue.getResultString() << std::endl;
+        std::cout << "Failed to run gauss kernel: " << queue.getResultString() << std::endl;
         return -1;
     }
 
     //run the kernel
-    queue.readBuffer(sobelBuffer, true, 0, sobel_data.data());
+    queue.readBuffer(outBuffer, true, 0, out_data.data());
     if(!queue.checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to read sobel image buffer: " << queue.getResultString() << std::endl;
+        std::cout << "Failed to read gauss image buffer: " << queue.getResultString() << std::endl;
         return -1;
     }
 
     //write the gray scale image to a file
-    std::vector<std::vector<float>> sobelVec(height - 2, std::vector<float>(width - 2));
+    std::vector<std::vector<std::vector<float>>> outVec(height - 2, std::vector<std::vector<float>>(width - 2, std::vector<float>(3)));
     for(uint i = 0; i < height - 2; i++) {
         for(uint j = 0; j < width - 2; j++) {
-            sobelVec[i][j] = sobel_data[i * width + j];
+            uint offset = 3 * (i * width + j);
+            outVec[i][j][0] = out_data[offset];
+            outVec[i][j][1] = out_data[offset+1];
+            outVec[i][j][2] = out_data[offset+2];
         }
     }
 
-    writePPM(argv[2], sobelVec);
+    writePPM(argv[2], outVec);
 
     return 0;
 }
