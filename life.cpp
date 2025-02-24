@@ -140,7 +140,7 @@ int main() {
     //print the next 5 iterations
     for(int i = 0; i < 5; i++) {
         //run the kernel
-        queue.runKernel<BOARD_SIZE, BOARD_SIZE, 1, 1>(life);
+        queue.runKernel(life, BOARD_SIZE, BOARD_SIZE, 1, 1);
         if(!queue.checkResult(CL_SUCCESS)) {
             std::cout << "Failed to run kernel: " << queue.getResultString() << std::endl;
             return -1;

@@ -15,8 +15,8 @@
 #include "Program.h"
 #include "Kernel.h"
 
-#define WIDTH 1500
-#define HEIGHT 1000
+#define WIDTH 1024
+#define HEIGHT 1024
 
 
 // Function to read a PPM file and return a 3D RGB array
@@ -251,14 +251,14 @@ int main(int argc, char *argv[]) {
     }
 
     //run the gray scale kernel
-    queue.runKernel<HEIGHT, WIDTH, 1, 1>(gray);
+    queue.runKernel(gray, height, width, 1, 1);
     if(!queue.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to run gray scale kernel: " << queue.getResultString() << std::endl;
         return -1;
     }
 
     //run the sobel kernel
-    queue.runKernel<HEIGHT, WIDTH, 1, 1>(sobel);
+    queue.runKernel(sobel, height, width, 1, 1);
     if(!queue.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to run sobel kernel: " << queue.getResultString() << std::endl;
         return -1;

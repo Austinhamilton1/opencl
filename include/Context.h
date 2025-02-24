@@ -13,7 +13,7 @@
 namespace cl {
     class Context : public Logger {
     private:
-        cl_context context;
+        cl_context context = nullptr;
         std::vector<Device> devices;
         std::unordered_map<std::string, Program> programs;
 

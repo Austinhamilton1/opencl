@@ -164,7 +164,7 @@ int main() {
     }
 
     //run the kernel
-    queue.runKernel<THREADS, GROUPS>(dot);
+    queue.runKernel(dot, THREADS, GROUPS);
     if(!queue.checkResult(CL_SUCCESS)) {
         std::cout << "Could not run dot kernel" << std::endl;
         return -1;

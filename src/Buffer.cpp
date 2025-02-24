@@ -17,5 +17,8 @@ cl::Buffer::Buffer(cl::Context& context, cl_mem_flags flags, size_t size) {
 }
 
 cl::Buffer::~Buffer() {
-    clReleaseMemObject(buffer);
+    logInfo("Calling clReleaseMemObject");
+    if(buffer != nullptr)
+        clReleaseMemObject(buffer);
+    logInfo("clReleaseMemObject called");
 }

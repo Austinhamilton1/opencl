@@ -15,7 +15,7 @@ namespace cl {
 
     class Program : public Logger {
     private:
-        cl_program program;
+        cl_program program = nullptr;
         std::vector<Device> devices;
         std::string source;
         std::unordered_map<std::string, std::shared_ptr<Kernel>> kernels;

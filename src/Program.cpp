@@ -19,7 +19,7 @@ cl::Program::Program(cl::Context& context, std::string source_file) {
     else {
         //log an error
         logError("Couldn't open file " + source_file);
-        result = -1;
+        result = SOURCE_FILE_NOT_FOUND;
         return;
     }
 
@@ -43,7 +43,10 @@ cl::Program::Program(cl::Context& context, std::string source_file) {
 }
 
 cl::Program::~Program() {
-    clReleaseProgram(program);
+    logInfo("Calling clReleaseProgram");
+    if(program != nullptr)
+        clReleaseProgram(program);
+    logInfo("clReleaseProgram called");
 }
 
 void cl::Program::build() {

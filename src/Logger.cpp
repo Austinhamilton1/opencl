@@ -258,6 +258,9 @@ std::string cl::Logger::getResultString() {
 		case CL_INVALID_GL_OBJECT:
 			result_str = "CL_INVALID_GL_OBJECT";
 			break;
+		case SOURCE_FILE_NOT_FOUND:
+			result_str = "SOURCE_FILE_NOT_FOUND";
+			break;
 		default:
             result_str = "Unknown error";
             break;

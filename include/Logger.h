@@ -2,6 +2,8 @@
 #include <string>
 #include <chrono>
 
+#define SOURCE_FILE_NOT_FOUND -1000
+
 namespace cl {
     const unsigned int LOG_LEVEL_INFO = 1;
     const unsigned int LOG_LEVEL_DEBUG = 2;

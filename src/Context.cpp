@@ -28,6 +28,7 @@ cl::Context::Context(std::vector<cl::Device> devices) {
 
 cl::Context::~Context() {
     logInfo("Calling clReleaseContext");
-    clReleaseContext(context);
+    if(context != nullptr)
+        clReleaseContext(context);
     logInfo("clReleaseContext called");
 }

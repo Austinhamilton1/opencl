@@ -8,7 +8,7 @@ namespace cl {
 
     class Buffer : public Logger {
     private:
-        cl_mem buffer;
+        cl_mem buffer = nullptr;
         size_t size;
     
     public:

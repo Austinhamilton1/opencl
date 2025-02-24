@@ -2,7 +2,10 @@
 #include "Buffer.h"
 
 cl::Kernel::~Kernel() {
-    clReleaseKernel(kernel);
+    logInfo("Calling clReleaseKernel");
+    if(kernel != nullptr)
+        clReleaseKernel(kernel);
+    logInfo("clReleaseKernel called");
 }
 
 void cl::Kernel::setArg(unsigned int index, cl::Buffer& buffer) {

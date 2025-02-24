@@ -10,7 +10,7 @@ namespace cl {
     
     class Kernel : public Logger {
     private:
-        cl_kernel kernel;
+        cl_kernel kernel = nullptr;
 
     public:
         Kernel(cl_kernel kernel) : kernel(kernel) {};
