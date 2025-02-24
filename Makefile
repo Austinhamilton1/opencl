@@ -12,7 +12,7 @@ LDFLAGS=-lOpenCL
 
 .PHONY: all clean
 
-all: $(BIN)/device_query $(BIN)/vadd $(BIN)/dot $(BIN)/life
+all: $(BIN)/device_query $(BIN)/vadd $(BIN)/dot $(BIN)/life $(BIN)/sobel
 
 $(BIN)/device_query: $(OBJ)/device_query.o $(OBJS) | $(BIN)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ)/device_query.o $(OBJS) $(LDFLAGS)
@@ -26,6 +26,9 @@ $(BIN)/dot: $(OBJ)/dot.o $(OBJS) | $(BIN)
 $(BIN)/life: $(OBJ)/life.o $(OBJS) | $(BIN)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ)/life.o $(OBJS) $(LDFLAGS)
 
+$(BIN)/sobel: $(OBJ)/sobel.o $(OBJS) | $(BIN)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ)/sobel.o $(OBJS) $(LDFLAGS)
+
 $(OBJ)/device_query.o: device_query.cpp | $(OBJ)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
@@ -36,6 +39,9 @@ $(OBJ)/dot.o: dot.cpp | $(OBJ)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(OBJ)/life.o: life.cpp | $(OBJ)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+$(OBJ)/sobel.o: sobel.cpp | $(OBJ)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(OBJ)/Buffer.o : $(SRC)/Buffer.cpp | $(OBJ)
