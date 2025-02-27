@@ -5,34 +5,39 @@ __kernel void gauss(float sigma, __global float *input_img, __global float *outp
     uint maxrows = get_global_size(0);
     uint maxcols = get_global_size(1);
 
+    int kernel_radius = ceil(3.0f * sigma);
+
     //dont convolve the edge pixels
-    if(rowid < maxrows - 4 && colid < maxcols - 4) {
-        float rgb[3];
-        float weight_sum = 273.0f;
-        float conv[25] = { 
-            1.0f, 4.0f, 7.0f, 4.0f, 1.0f, 
-            4.0f, 16.0f, 26.0f, 16.0f, 4.0f, 
-            7.0f, 26.0f, 41.0f, 26.0f, 7.0f, 
-            4.0f, 16.0f, 26.0f, 16.0f, 4.0f, 
-            1.0f, 4.0f, 7.0f, 4.0f, 1.0f
-        };
+    float rgb[3] = {0.0f, 0.0f, 0.0f};
+    float weight_sum = 0.0f;
 
-        //convert 2d image coordinate to 1d coordinate
-        uint global_idx = 3 * (rowid * maxcols + colid);
+    //convert 2d image coordinate to 1d coordinate
+    uint global_idx = 3 * (rowid * maxcols + colid);
 
-        //calculate the total rgb values for neighboring pixels
-        for(uint i = 0; i < 5; i++) {
-            for(uint j = 0; j < 5; j++) {
-                uint local_idx = i * 5 + j;
-                uint global_offset = (rowid + i) * maxcols + (colid + j);
-                rgb[0] += conv[local_idx] * input_img[global_offset];
-                rgb[1] += conv[local_idx] * input_img[global_offset+1];
-                rgb[2] += conv[local_idx] * input_img[global_offset+2];
+    //calculate the total rgb values for neighboring pixels
+    for(int i = -kernel_radius; i < kernel_radius; i++) {
+        for(int j = -kernel_radius; j < kernel_radius; j++) {
+            int x = rowid + i;
+            int y = colid + j;
+
+            if(x > 0 && x < maxrows && y > 0 && y < maxcols) {
+                uint global_offset = 3 * (x * maxcols + y);
+
+                float distance = (i * i + j * j) / (2.0f * sigma * sigma);
+                float G_xy = exp(-distance) / (2.0f * M_PI * sigma * sigma);
+
+                rgb[0] += G_xy * input_img[global_offset];
+                rgb[1] += G_xy * input_img[global_offset+1];
+                rgb[2] += G_xy * input_img[global_offset+2];
+
+                weight_sum += G_xy;
             }
         }
+    }
 
+    if(weight_sum > 0.0f) {
         output_img[global_idx] = rgb[0] / weight_sum;
         output_img[global_idx+1] = rgb[1] / weight_sum;
-        output_img[global_idx+2] = rgb[2] / weight_sum;          
+        output_img[global_idx+2] = rgb[2] / weight_sum; 
     }
 }

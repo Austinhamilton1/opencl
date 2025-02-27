@@ -16,16 +16,14 @@
 
 int main(int argc, char *argv[]) {
     if(argc < 3) {
-        std::cout << "Usage: sobel [src filename] [dest filename]" << std::endl;
+        std::cerr << "Usage: negative [original image] [negative image]" << std::endl;
         return -1;
     }
 
-    //read in the image file
-    PPMImage image;
-    image.fromFile(argv[1]);
-    image.normalize();
-
-    std::cout << "Read file of size " << image.width << " x " << image.height << std::endl;
+    //read the input image
+    PPMImage input;
+    input.fromFile(argv[1]);
+    input.normalize();
 
     //look for available compute platforms
     std::vector<cl::Platform> all_platforms = cl::Platform::allPlatforms();
@@ -63,29 +61,29 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    //allocate the buffer for the image data
-    cl::Buffer imgBuffer(context, CL_MEM_READ_ONLY, image.width * image.height * 3 * sizeof(float));
-    if(!imgBuffer.checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to create image buffer: " << imgBuffer.getResultString() << std::endl;
+    //create the input buffer
+    cl::Buffer inputBuffer(context, CL_MEM_READ_ONLY, input.width * input.height * 3 * sizeof(float));
+    if(!inputBuffer.checkResult(CL_SUCCESS)) {
+        std::cout << "Failed to create input buffer: " << inputBuffer.getResultString() << std::endl;
         return -1;
     }
 
-    //allocate the buffer for the sobel image 
-    cl::Buffer sobelBuffer(context, CL_MEM_WRITE_ONLY, image.width * image.height * 3 * sizeof(float));
-    if(!sobelBuffer.checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to create sobel image buffer: " << sobelBuffer.getResultString() << std::endl;
+    //create the output buffer
+    cl::Buffer outputBuffer(context, CL_MEM_WRITE_ONLY, input.width * input.height * 3 * sizeof(float));
+    if(!outputBuffer.checkResult(CL_SUCCESS)) {
+        std::cout << "Failed to create input buffer: " << outputBuffer.getResultString() << std::endl;
         return -1;
     }
 
-    //write the image data to the buffer
-    queue.writeBuffer(imgBuffer, true, 0, image.norm.data());
+    //write the input data to the buffer
+    queue.writeBuffer(inputBuffer, true, 0, input.norm.data());
     if(!queue.checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to write to image buffer: " << queue.getResultString() << std::endl;
+        std::cout << "Failed to write to input buffer: " << queue.getResultString() << std::endl;
         return -1;
     }
 
     //create the program
-    cl::Program program(context, "kernels/sobel.cl");
+    cl::Program program(context, "kernels/negative.cl");
     if(!program.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to create program: " << program.getResultString() << std::endl;
         return -1;
@@ -99,52 +97,50 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    //add the sobel image edge detection kernel
-    program.addKernel("sobel");
+    //add the grayscale kernel
+    program.addKernel("negative");
     if(!program.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to add kernel: " << program.getResultString() << std::endl;
         return -1;
     }
 
     //set the arguments of the kernel
-    std::shared_ptr<cl::Kernel> sobel = program.getKernel("sobel");
+    std::shared_ptr<cl::Kernel> negative = program.getKernel("negative");
 
-    sobel->setArg(0, imgBuffer);
-    if(!sobel->checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to set gray image argument: " << sobel->getResultString() << std::endl;
+    negative->setArg(0, inputBuffer);
+    if(!negative->checkResult(CL_SUCCESS)) {
+        std::cout << "Failed to set input image argument: " << negative->getResultString() << std::endl;
         return -1;
     }
 
-    sobel->setArg(1, sobelBuffer);
-    if(!sobel->checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to set sobel image argument: " << sobel->getResultString() << std::endl;
+    negative->setArg(1, outputBuffer);
+    if(!negative->checkResult(CL_SUCCESS)) {
+        std::cout << "Failed to set output argument: " << negative->getResultString() << std::endl;
         return -1;
     }
 
-    //run the sobel kernel
-    queue.runKernel(sobel, image.height, image.width, 1, 1);
+    //run the gauss kernel
+    queue.runKernel(negative, input.height, input.width, 1, 1);
     if(!queue.checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to run sobel kernel: " << queue.getResultString() << std::endl;
+        std::cout << "Failed to run color kernel: " << queue.getResultString() << std::endl;
         return -1;
     }
 
-    //allocate an image object 
-    PPMImage sobel_image;
-    sobel_image.width = image.width;
-    sobel_image.height = image.height;
-    sobel_image.max_color_value = image.max_color_value;
-    sobel_image.norm.resize(sobel_image.width * sobel_image.height * 3);
+    PPMImage output;
+    output.width = input.width;
+    output.height = input.height;
+    output.max_color_value = 255;
+    output.norm.resize(output.width * output.height * 3);
 
     //run the kernel
-    queue.readBuffer(sobelBuffer, true, 0, sobel_image.norm.data());
+    queue.readBuffer(outputBuffer, true, 0, output.norm.data());
     if(!queue.checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to read sobel image buffer: " << queue.getResultString() << std::endl;
+        std::cout << "Failed to read color image buffer: " << queue.getResultString() << std::endl;
         return -1;
     }
 
-    sobel_image.loadNorm();
-
-    sobel_image.toFile(argv[2]);
+    output.loadNorm();
+    output.toFile(argv[2]);
 
     std::cout << "Image successfully written to " << argv[2] << std::endl;
 

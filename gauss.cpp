@@ -5,8 +5,7 @@
 #include <sstream>
 #include <memory>
 
-#include <stdio.h>
-
+#include "Utils.h"
 #include "Platform.h"
 #include "Device.h"
 #include "Context.h"
@@ -16,119 +15,20 @@
 #include "Kernel.h"
 
 
-// Function to read a PPM file and return a 3D RGB array
-std::vector<std::vector<std::vector<float>>> readPPM(const char *filename) {
-    std::ifstream file(filename, std::ios::binary);
-    if (!file) {
-        std::cerr << "Error: Unable to open file " << filename << std::endl;
-        exit(1);
-    }
-
-    std::string format;
-    int width, height, maxVal;
-    
-    // Read PPM header
-    file >> format >> width >> height >> maxVal;
-    file.ignore();  // Ignore the newline character after maxVal
-
-    if (format != "P3" && format != "P6") {
-        std::cerr << "Error: Unsupported PPM format (only P3 and P6 are supported)." << std::endl;
-        exit(1);
-    }
-
-    // Allocate 3D array: height x width x 3 (RGB)
-    std::vector<std::vector<std::vector<float>>> image(height, std::vector<std::vector<float>>(width, std::vector<float>(3)));
-
-    if (format == "P3") { // ASCII format
-        for (int i = 0; i < height; ++i) {
-            for (int j = 0; j < width; ++j) {
-                int r, g, b;
-                file >> r >> g >> b;
-                image[i][j][0] = r / static_cast<float>(maxVal);
-                image[i][j][1] = g / static_cast<float>(maxVal);
-                image[i][j][2] = b / static_cast<float>(maxVal);
-            }
-        }
-    } else if (format == "P6") { // Binary format
-        file.get();  // Skip the single whitespace character after maxVal
-        for (int i = 0; i < height; ++i) {
-            for (int j = 0; j < width; ++j) {
-                unsigned char rgb[3];
-                file.read(reinterpret_cast<char*>(rgb), 3);
-                image[i][j][0] = rgb[0] / static_cast<float>(maxVal);
-                image[i][j][1] = rgb[1] / static_cast<float>(maxVal);
-                image[i][j][2] = rgb[2] / static_cast<float>(maxVal);
-            }
-        }
-    }
-
-    file.close();
-    return image;
-}
-
-// Function to write a 3D float vector (normalized RGB values) to a binary PPM file
-void writePPM(const char* filename, const std::vector<std::vector<std::vector<float>>>& image) {
-    if (image.empty() || image[0].empty() || image[0][0].empty()) {
-        std::cerr << "Error: Invalid image dimensions!" << std::endl;
-        return;
-    }
-
-    int height = image.size();
-    int width = image[0].size();
-    int maxVal = 255;  // Standard 8-bit PPM
-
-    std::ofstream file(filename, std::ios::binary);
-    if (!file) {
-        std::cerr << "Error: Unable to open file for writing!" << std::endl;
-        return;
-    }
-
-    // Write PGM header
-    file << "P6\n" << width << " " << height << "\n" << maxVal << "\n";
-
-    // Write binary pixel data
-    for (int i = 0; i < height; ++i) {
-        for (int j = 0; j < width; ++j) {
-            unsigned char r = static_cast<unsigned char>(image[i][j][0] * maxVal);
-            unsigned char g = static_cast<unsigned char>(image[i][j][1] * maxVal);
-            unsigned char b = static_cast<unsigned char>(image[i][j][2] * maxVal);
-            file.write(reinterpret_cast<char*>(&r), 1);
-            file.write(reinterpret_cast<char*>(&g), 1);
-            file.write(reinterpret_cast<char*>(&b), 1);
-        }
-    }
-
-    file.close();
-    std::cout << "PPM image successfully written to: " << filename << std::endl;
-}
-
 int main(int argc, char *argv[]) {
-    if(argc < 3) {
-        std::cout << "Usage: sobel [src filename] [dest filename]" << std::endl;
+    if(argc < 4) {
+        std::cout << "Usage: gauss [sigma] [src filename] [dest filename]" << std::endl;
         return -1;
     }
 
+    float sigma = std::stof(argv[1]);
+
     //read in the image file
-    std::vector<std::vector<std::vector<float>>> rgb = readPPM(argv[1]);
-    const uint height = rgb.size();
-    const uint width = rgb[0].size();
+    PPMImage image;
+    image.fromFile(argv[2]);
+    image.normalize();
 
-    std::cout << "Read file of size " << height << " x " << width << std::endl;
-
-    //allocate memory for buffer
-    std::vector<float> img_data;
-    std::vector<float> out_data;
-    for(int i = 0; i < height; i++) {
-        for(int j = 0; j < width; j++) {
-            img_data.push_back(rgb[i][j][0]);
-            img_data.push_back(rgb[i][j][1]);
-            img_data.push_back(rgb[i][j][2]);
-            out_data.push_back(0.0f);
-            out_data.push_back(0.0f);
-            out_data.push_back(0.0f);
-        }
-    }
-    float sigma = 3.0f;
+    std::cout << "Read file of size " << image.width << " x " << image.height << std::endl;
 
     //look for available compute platforms
     std::vector<cl::Platform> all_platforms = cl::Platform::allPlatforms();
@@ -167,21 +67,21 @@ int main(int argc, char *argv[]) {
     }
 
     //allocate the buffer for the image data
-    cl::Buffer imgBuffer(context, CL_MEM_READ_ONLY, width * height * 3 * sizeof(float));
+    cl::Buffer imgBuffer(context, CL_MEM_READ_ONLY, image.width * image.height * 3 * sizeof(float));
     if(!imgBuffer.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to create image buffer: " << imgBuffer.getResultString() << std::endl;
         return -1;
     }
 
     //allocate the buffer for the gray scale image
-    cl::Buffer outBuffer(context, CL_MEM_WRITE_ONLY, (width - 2) * (height - 2) * 3 * sizeof(float));
+    cl::Buffer outBuffer(context, CL_MEM_WRITE_ONLY, image.width * image.height * 3 * sizeof(float));
     if(!outBuffer.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to create gray image buffer: " << outBuffer.getResultString() << std::endl;
         return -1;
     }
 
     //write the image data to the buffer
-    queue.writeBuffer(imgBuffer, true, 0, img_data.data());
+    queue.writeBuffer(imgBuffer, true, 0, image.norm.data());
     if(!queue.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to write to image buffer: " << queue.getResultString() << std::endl;
         return -1;
@@ -231,31 +131,29 @@ int main(int argc, char *argv[]) {
     }
 
     //run the gauss kernel
-    queue.runKernel(gauss, height, width, 1, 1);
+    queue.runKernel(gauss, image.height, image.width, 1, 1);
     if(!queue.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to run gauss kernel: " << queue.getResultString() << std::endl;
         return -1;
     }
 
+    PPMImage out_image;
+    out_image.width = image.width;
+    out_image.height = image.height;
+    out_image.max_color_value = 255;
+    out_image.norm.resize(out_image.width * out_image.height * 3);
+
     //run the kernel
-    queue.readBuffer(outBuffer, true, 0, out_data.data());
+    queue.readBuffer(outBuffer, true, 0, out_image.norm.data());
     if(!queue.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to read gauss image buffer: " << queue.getResultString() << std::endl;
         return -1;
     }
 
-    //write the gray scale image to a file
-    std::vector<std::vector<std::vector<float>>> outVec(height - 2, std::vector<std::vector<float>>(width - 2, std::vector<float>(3)));
-    for(uint i = 0; i < height - 2; i++) {
-        for(uint j = 0; j < width - 2; j++) {
-            uint offset = 3 * (i * width + j);
-            outVec[i][j][0] = out_data[offset];
-            outVec[i][j][1] = out_data[offset+1];
-            outVec[i][j][2] = out_data[offset+2];
-        }
-    }
+    out_image.loadNorm();
+    out_image.toFile(argv[3]);
 
-    writePPM(argv[2], outVec);
+    std::cout << "Image successfully written to " << argv[3] << std::endl;
 
     return 0;
 }

@@ -16,7 +16,7 @@
 
 int main(int argc, char *argv[]) {
     if(argc < 3) {
-        std::cout << "Usage: sobel [src filename] [dest filename]" << std::endl;
+        std::cout << "Usage: gray [src filename] [dest filename]" << std::endl;
         return -1;
     }
 
@@ -70,10 +70,10 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    //allocate the buffer for the sobel image 
-    cl::Buffer sobelBuffer(context, CL_MEM_WRITE_ONLY, image.width * image.height * 3 * sizeof(float));
-    if(!sobelBuffer.checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to create sobel image buffer: " << sobelBuffer.getResultString() << std::endl;
+    //allocate the buffer for the gray scale image
+    cl::Buffer grayBuffer(context, CL_MEM_WRITE_ONLY, image.width * image.height * 3 * sizeof(float));
+    if(!grayBuffer.checkResult(CL_SUCCESS)) {
+        std::cout << "Failed to create gray image buffer: " << grayBuffer.getResultString() << std::endl;
         return -1;
     }
 
@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
     }
 
     //create the program
-    cl::Program program(context, "kernels/sobel.cl");
+    cl::Program program(context, "kernels/gray.cl");
     if(!program.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to create program: " << program.getResultString() << std::endl;
         return -1;
@@ -99,52 +99,52 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    //add the sobel image edge detection kernel
-    program.addKernel("sobel");
+    //add the grayscale kernel
+    program.addKernel("gray");
     if(!program.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to add kernel: " << program.getResultString() << std::endl;
         return -1;
     }
 
     //set the arguments of the kernel
-    std::shared_ptr<cl::Kernel> sobel = program.getKernel("sobel");
+    std::shared_ptr<cl::Kernel> gray = program.getKernel("gray");
 
-    sobel->setArg(0, imgBuffer);
-    if(!sobel->checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to set gray image argument: " << sobel->getResultString() << std::endl;
+    gray->setArg(0, imgBuffer);
+    if(!gray->checkResult(CL_SUCCESS)) {
+        std::cout << "Failed to set image argument: " << gray->getResultString() << std::endl;
         return -1;
     }
 
-    sobel->setArg(1, sobelBuffer);
-    if(!sobel->checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to set sobel image argument: " << sobel->getResultString() << std::endl;
+    gray->setArg(1, grayBuffer);
+    if(!gray->checkResult(CL_SUCCESS)) {
+        std::cout << "Failed to set gray image argument: " << gray->getResultString() << std::endl;
         return -1;
     }
 
-    //run the sobel kernel
-    queue.runKernel(sobel, image.height, image.width, 1, 1);
+    //run the gray scale kernel
+    queue.runKernel(gray, image.height, image.width, 1, 1);
     if(!queue.checkResult(CL_SUCCESS)) {
-        std::cout << "Failed to run sobel kernel: " << queue.getResultString() << std::endl;
+        std::cout << "Failed to run gray scale kernel: " << queue.getResultString() << std::endl;
         return -1;
     }
 
     //allocate an image object 
-    PPMImage sobel_image;
-    sobel_image.width = image.width;
-    sobel_image.height = image.height;
-    sobel_image.max_color_value = image.max_color_value;
-    sobel_image.norm.resize(sobel_image.width * sobel_image.height * 3);
+    PPMImage gray_image;
+    gray_image.width = image.width;
+    gray_image.height = image.height;
+    gray_image.max_color_value = image.max_color_value;
+    gray_image.norm.resize(gray_image.width * gray_image.height * 3);
 
     //run the kernel
-    queue.readBuffer(sobelBuffer, true, 0, sobel_image.norm.data());
+    queue.readBuffer(grayBuffer, true, 0, gray_image.norm.data());
     if(!queue.checkResult(CL_SUCCESS)) {
         std::cout << "Failed to read sobel image buffer: " << queue.getResultString() << std::endl;
         return -1;
     }
 
-    sobel_image.loadNorm();
+    gray_image.loadNorm();
 
-    sobel_image.toFile(argv[2]);
+    gray_image.toFile(argv[2]);
 
     std::cout << "Image successfully written to " << argv[2] << std::endl;
 

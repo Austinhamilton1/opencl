@@ -18,7 +18,7 @@ namespace cl {
         std::chrono::time_point<std::chrono::high_resolution_clock> init_time;
 
     public:
-        Logger() : result(0), init_time(std::chrono::high_resolution_clock::now()) {};
+        Logger() : result(0) { init_time = std::chrono::high_resolution_clock::now() ;};
         ~Logger() {};
         
         inline int getResult() { return result; };
