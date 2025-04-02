@@ -4,15 +4,18 @@ SRC=src
 INC=include
 OBJ=obj
 BIN=bin
+LIB=lib
 
 OBJS=$(patsubst $(SRC)/%.cpp, $(OBJ)/%.o, $(wildcard $(SRC)/*.cpp))
 
 CXXFLAGS=-I$(INC) -D CL_TARGET_OPENCL_VERSION=300 -g
 LDFLAGS=-lOpenCL
 
-.PHONY: all clean
+.PHONY: all library clean
 
 all: $(BIN)/device_query $(BIN)/vadd $(BIN)/dot $(BIN)/life $(BIN)/sobel $(BIN)/gauss $(BIN)/gray $(BIN)/negative
+
+library: $(LIB)/libopencl.a
 
 $(BIN)/device_query: $(OBJ)/device_query.o $(OBJS) | $(BIN)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ)/device_query.o $(OBJS) $(LDFLAGS)
@@ -37,6 +40,9 @@ $(BIN)/gray: $(OBJ)/gray.o $(OBJS) | $(BIN)
 
 $(BIN)/negative: $(OBJ)/negative.o $(OBJS) | $(BIN)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ)/negative.o $(OBJS) $(LDFLAGS)
+
+$(LIB)/libopencl.a: $(OBJS) | $(LIB)
+	ar rcs $(LIB)/libopencl.a $(OBJS)
 
 $(OBJ)/device_query.o: device_query.cpp | $(OBJ)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
@@ -89,9 +95,13 @@ $(OBJ)/Program.o : $(SRC)/Program.cpp | $(OBJ)
 $(OBJ):
 	mkdir -p $@
 
+$(LIB):
+	mkdir -p $@
+
 $(BIN):
 	mkdir -p $@
 
 clean:
 	rm -rf $(OBJ)
 	rm -rf $(BIN)
+	rm -rf $(LIB)
